@@ -3,6 +3,10 @@ Vue.component('kanban-card', {
         card: {
             type: Object,
             required: true
+        },
+        columnType: {
+            type: String,
+            required: true
         }
     },
     template: `
@@ -11,6 +15,7 @@ Vue.component('kanban-card', {
             <div class="card-description">{{ card.description }}</div>
             <div class="card-deadline">Дедлайн: {{ card.deadline }}</div>
             <div class="card-actions">
+                <button v-if="columnType === 'planned'" class="move-forward" @click="$emit('move-forward')"> В работу</button>
                 <button class="edit-btn" @click="$emit('edit')">Редактировать</button>
                 <button class="delete-btn" @click="$emit('delete')">Удалить</button>
             </div>
@@ -44,8 +49,10 @@ Vue.component('kanban-column', {
                     v-for="card in cards" 
                     :key="card.id"
                     :card="card"
+                    :columnType="columnType"
                     @edit="$emit('edit-card', card)"
                     @delete="$emit('delete-card', card)"
+                    @move-forward="$emit('move-forward', card)"
                 ></kanban-card>
             </div>
         </div>
@@ -125,6 +132,7 @@ Vue.component('card-modal', {
     }
 });
 
+
 Vue.component('kanban-board', {
     template: `
         <div class="kanban-board">
@@ -135,12 +143,15 @@ Vue.component('kanban-board', {
                 @add-card="openCreateModal"
                 @edit-card="openEditModal"
                 @delete-card="deleteCard"
+                @move-forward="moveCardForward"
             ></kanban-column>
             
             <kanban-column 
                 title="Задачи в работе" 
                 columnType="inProgress"
                 :cards="inProgressCards"
+                @edit-card="openEditModal"
+                @delete-card="deleteCard"
             ></kanban-column>
             
             <kanban-column 
@@ -212,16 +223,41 @@ Vue.component('kanban-board', {
                     lastEdited: new Date().toISOString()
                 };
 
-                const index = this.plannedCards.findIndex(c => c.id === editedCard.id);
-                if (index !== -1) {
-                    this.plannedCards.splice(index, 1, editedCard);
-                }
+                this.updateCardInAllColumns(editedCard);
             }
             this.closeModal();
         },
         deleteCard(card) {
             if (confirm('Удалить задачу?')) {
                 this.plannedCards = this.plannedCards.filter(c => c.id !== card.id);
+                this.inProgressCards = this.inProgressCards.filter(c => c.id !== card.id);
+                this.testingCards = this.testingCards.filter(c => c.id !== card.id);
+                this.completedCards = this.completedCards.filter(c => c.id !== card.id);
+            }
+        },
+        updateCardInAllColumns(updatedCard) {
+            const updateInArray = (cards) => {
+                const index = cards.findIndex(c => c.id === updatedCard.id);
+                if (index !== -1) {
+                    cards[index] = updatedCard;
+                }
+                return cards;
+            };
+
+            this.plannedCards = updateInArray([...this.plannedCards]);
+            this.inProgressCards = updateInArray([...this.inProgressCards]);
+            this.testingCards = updateInArray([...this.testingCards]);
+            this.completedCards = updateInArray([...this.completedCards]);
+        },
+        moveCardForward(card) {
+            const updatedCard = {
+                ...card,
+                lastEdited: new Date().toISOString()
+            };
+
+            if (this.plannedCards.find(c => c.id === card.id)) {
+                this.plannedCards = this.plannedCards.filter(c => c.id !== card.id);
+                this.inProgressCards.push(updatedCard);
             }
         }
     }
