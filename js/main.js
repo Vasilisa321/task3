@@ -10,7 +10,7 @@ Vue.component('kanban-card', {
         }
     },
     template: `
-        <div class="card">
+        <div class="card" :class="{ overdue: card.status === 'overdue', completed: card.status === 'completed' }">
             <div class="card-header">
                 Создано: {{ formatDate(card.createdAt) }}
             </div>
@@ -20,14 +20,36 @@ Vue.component('kanban-card', {
             <div class="card-title">{{ card.title }}</div>
             <div class="card-description">{{ card.description }}</div>
             <div class="card-deadline">Дедлайн: {{ card.deadline }}</div>
+            <div v-if="columnType === 'completed'" class="card-status">
+                Статус: {{ card.status === 'overdue' ? 'Просрочено' : 'Выполнено в срок' }}
+            </div>
             <div class="card-actions">
-                <button v-if="columnType === 'planned'" class="move-forward" @click="$emit('move-forward')">→ В работу</button>
-                <button v-if="columnType === 'inProgress'" class="move-forward" @click="$emit('move-forward')">→ В тестирование</button>
+                <button v-if="columnType === 'planned'" class="move-forward" @click="$emit('move-forward')">В работу</button>
+                <button v-if="columnType === 'inProgress'" class="move-forward" @click="$emit('move-forward')">В тестирование</button>
+                <button v-if="columnType === 'testing'" class="move-forward" @click="$emit('move-forward')">Выполнено</button>
+                <button v-if="columnType === 'testing'" class="move-back" @click="showReturnReason = true">Вернуть в работу</button>
                 <button class="edit-btn" @click="$emit('edit')">Редактировать</button>
                 <button class="delete-btn" @click="$emit('delete')">Удалить</button>
             </div>
+            
+            <div v-if="showReturnReason" class="modal" @click.self="showReturnReason = false">
+                <div class="modal-content">
+                    <h4>Причина возврата</h4>
+                    <input v-model="returnReason" placeholder="Укажите причину возврата">
+                    <div class="modal-actions">
+                        <button class="save" @click="submitReturn">Отправить</button>
+                        <button class="cancel" @click="showReturnReason = false">Отмена</button>
+                    </div>
+                </div>
+            </div>
         </div>
     `,
+    data() {
+        return {
+            showReturnReason: false,
+            returnReason: ''
+        };
+    },
     methods: {
         formatDate(date) {
             if (!date) return 'Нет данных';
@@ -38,6 +60,11 @@ Vue.component('kanban-card', {
                 hour: '2-digit',
                 minute: '2-digit'
             });
+        },
+        submitReturn() {
+            this.$emit('move-back', this.returnReason);
+            this.showReturnReason = false;
+            this.returnReason = '';
         }
     }
 });
@@ -72,6 +99,7 @@ Vue.component('kanban-column', {
                     @edit="$emit('edit-card', card)"
                     @delete="$emit('delete-card', card)"
                     @move-forward="$emit('move-forward', card)"
+                    @move-back="$emit('move-back', card, $event)"
                 ></kanban-card>
             </div>
         </div>
@@ -180,6 +208,7 @@ Vue.component('kanban-board', {
                 @edit-card="openEditModal"
                 @delete-card="deleteCard"
                 @move-forward="moveCardForward"
+                @move-back="moveCardBack"
             ></kanban-column>
             
             <kanban-column 
@@ -273,11 +302,18 @@ Vue.component('kanban-board', {
             this.testingCards = updateInArray([...this.testingCards]);
             this.completedCards = updateInArray([...this.completedCards]);
         },
+        checkDeadline(card) {
+            const deadline = new Date(card.deadline);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return deadline < today;
+        },
         moveCardForward(card) {
             const updatedCard = {
                 ...card,
                 lastEdited: new Date().toISOString()
             };
+
 
             if (this.plannedCards.find(c => c.id === card.id)) {
                 this.plannedCards = this.plannedCards.filter(c => c.id !== card.id);
@@ -291,7 +327,25 @@ Vue.component('kanban-board', {
 
             else if (this.testingCards.find(c => c.id === card.id)) {
                 this.testingCards = this.testingCards.filter(c => c.id !== card.id);
-                this.completedCards.push(updatedCard);
+
+                const isOverdue = this.checkDeadline(card);
+                const finalCard = {
+                    ...updatedCard,
+                    status: isOverdue ? 'overdue' : 'completed'
+                };
+                this.completedCards.push(finalCard);
+            }
+        },
+        moveCardBack(card, reason) {
+            const updatedCard = {
+                ...card,
+                lastEdited: new Date().toISOString(),
+                returnReason: reason || 'Не указана'
+            };
+
+            if (this.testingCards.find(c => c.id === card.id)) {
+                this.testingCards = this.testingCards.filter(c => c.id !== card.id);
+                this.inProgressCards.push(updatedCard);
             }
         }
     }
