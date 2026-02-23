@@ -11,17 +11,35 @@ Vue.component('kanban-card', {
     },
     template: `
         <div class="card">
+            <div class="card-header">
+                Создано: {{ formatDate(card.createdAt) }}
+            </div>
+            <div class="card-header">
+                Изменено: {{ formatDate(card.lastEdited) }}
+            </div>
             <div class="card-title">{{ card.title }}</div>
             <div class="card-description">{{ card.description }}</div>
             <div class="card-deadline">Дедлайн: {{ card.deadline }}</div>
             <div class="card-actions">
                 <button v-if="columnType === 'planned'" class="move-forward" @click="$emit('move-forward')">→ В работу</button>
-                <button v-if="columnType === 'inProgress'" class="move-forward" @click="$emit('move-forward')">В тестирование</button>
+                <button v-if="columnType === 'inProgress'" class="move-forward" @click="$emit('move-forward')">→ В тестирование</button>
                 <button class="edit-btn" @click="$emit('edit')">Редактировать</button>
                 <button class="delete-btn" @click="$emit('delete')">Удалить</button>
             </div>
         </div>
-    `
+    `,
+    methods: {
+        formatDate(date) {
+            if (!date) return 'Нет данных';
+            return new Date(date).toLocaleString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    }
 });
 
 Vue.component('kanban-column', {
@@ -161,12 +179,15 @@ Vue.component('kanban-board', {
                 :cards="testingCards"
                 @edit-card="openEditModal"
                 @delete-card="deleteCard"
+                @move-forward="moveCardForward"
             ></kanban-column>
             
             <kanban-column 
                 title="Выполнение задачи" 
                 columnType="completed"
                 :cards="completedCards"
+                @edit-card="openEditModal"
+                @delete-card="deleteCard"
             ></kanban-column>
 
             <card-modal
@@ -262,13 +283,20 @@ Vue.component('kanban-board', {
                 this.plannedCards = this.plannedCards.filter(c => c.id !== card.id);
                 this.inProgressCards.push(updatedCard);
             }
+
             else if (this.inProgressCards.find(c => c.id === card.id)) {
                 this.inProgressCards = this.inProgressCards.filter(c => c.id !== card.id);
                 this.testingCards.push(updatedCard);
             }
+
+            else if (this.testingCards.find(c => c.id === card.id)) {
+                this.testingCards = this.testingCards.filter(c => c.id !== card.id);
+                this.completedCards.push(updatedCard);
+            }
         }
     }
 });
+
 
 let app = new Vue({
     el: '#app'
