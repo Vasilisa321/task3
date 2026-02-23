@@ -1,0 +1,279 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #faf7ff;
+    padding: 30px 20px;
+    color: #4a4a4a;
+}
+
+#app {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 35px;
+    color: #8b6faa;
+    font-weight: 300;
+    font-size: 2.5rem;
+    letter-spacing: 1px;
+}
+
+.kanban-board {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.kanban-column {
+    flex: 1;
+    min-width: 250px;
+    background-color: #f1e9fc;
+    border: 1px solid #d9c5f0;
+    padding: 15px;
+}
+
+.kanban-column:hover {
+    background-color: #ede4f8;
+}
+
+.column-header {
+    padding: 10px 5px 15px 5px;
+    font-weight: 600;
+    color: #8b6faa;
+    border-bottom: 1px solid #d9c5f0;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+.add-card-btn {
+    width: 100%;
+    padding: 8px;
+    background-color: #b79ad7;
+    color: white;
+    border: 1px solid #a07fc9;
+    cursor: pointer;
+    margin-bottom: 15px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.add-card-btn:hover {
+    background-color: #a07fc9;
+}
+
+.cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.card {
+    background-color: #fffdf5;
+    border: 1px solid #d9c5f0;
+    padding: 12px;
+}
+
+.card.overdue {
+    border-left: 4px solid #f7c35c;
+    background-color: #fff9e6;
+}
+
+
+.card-header {
+    font-size: 0.7rem;
+    color: #b79ad7;
+    margin-bottom: 2px;
+}
+
+.card-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 8px 0 5px 0;
+    color: #6b4f8c;
+}
+
+.card-description {
+    font-size: 0.9rem;
+    color: #6d6d6d;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.card-deadline {
+    font-size: 0.8rem;
+    color: #8b6faa;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.card-status {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    background-color: #f7c35c;
+    color: #6b4f8c;
+    display: inline-block;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.card-actions {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.card-actions button {
+    padding: 4px 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.move-forward {
+    background-color: #b79ad7;
+    color: white;
+    border-color: #a07fc9;
+}
+
+.move-forward:hover {
+    background-color: #a07fc9;
+}
+
+.move-back {
+    background-color: #f7c35c;
+    color: #6b4f8c;
+    border-color: #f5b83d;
+}
+
+.move-back:hover {
+    background-color: #f5b83d;
+}
+
+.edit-btn {
+    background-color: #d9c5f0;
+    color: #6b4f8c;
+    border-color: #c9b0e8;
+}
+
+.edit-btn:hover {
+    background-color: #c9b0e8;
+}
+
+.delete-btn {
+    background-color: #ffe0d9;
+    color: #e07f6b;
+    border-color: #ffd0c6;
+}
+
+.delete-btn:hover {
+    background-color: #ffd0c6;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(139, 111, 170, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #fffdf5;
+    padding: 20px;
+    width: 400px;
+    max-width: 90%;
+    border: 1px solid #d9c5f0;
+    background-color: white;
+}
+
+.modal-content h3, .modal-content h4 {
+    margin-bottom: 15px;
+    color: #8b6faa;
+    font-weight: 400;
+    text-align: center;
+}
+
+.modal-content input,
+.modal-content textarea {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    border: 1px solid #d9c5f0;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background-color: white;
+}
+
+.modal-content input:focus,
+.modal-content textarea:focus {
+    outline: none;
+    border-color: #b79ad7;
+}
+
+.modal-content textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+.modal-actions button {
+    padding: 6px 16px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.modal-actions button.save {
+    background-color: #b79ad7;
+    color: white;
+    border-color: #a07fc9;
+}
+
+.modal-actions button.save:hover {
+    background-color: #a07fc9;
+}
+
+.modal-actions button.cancel {
+    background-color: #ffe0d9;
+    color: #e07f6b;
+    border-color: #ffd0c6;
+}
+
+.modal-actions button.cancel:hover {
+    background-color: #ffd0c6;
+}
+
+@media (max-width: 768px) {
+    .kanban-board {
+        flex-direction: column;
+    }
+
+    .kanban-column {
+        width: 100%;
+    }
+}
