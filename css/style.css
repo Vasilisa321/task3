@@ -277,3 +277,34 @@ h1 {
         width: 100%;
     }
 }
+
+.date-input-group {
+    margin-bottom: 15px;
+}
+
+.date-input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #b09bc0;
+    font-size: 0.9rem;
+}
+
+.date-input-group input[type="date"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #5f5580;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background-color: #2f2a3a;
+    color: #f0e8ff;
+}
+
+.date-input-group input[type="date"]:focus {
+    outline: none;
+    border-color: #b09bc0;
+}
+
+.date-input-group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+    cursor: pointer;
+}

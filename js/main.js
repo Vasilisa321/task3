@@ -19,7 +19,7 @@ Vue.component('kanban-card', {
             </div>
             <div class="card-title">{{ card.title }}</div>
             <div class="card-description">{{ card.description }}</div>
-            <div class="card-deadline">Дедлайн: {{ card.deadline }}</div>
+            <div class="card-deadline">Дедлайн: {{ formatDeadline(card.deadline) }}</div>
             <div v-if="columnType === 'completed'" class="card-status">
                 Статус: {{ card.status === 'overdue' ? 'Просрочено' : 'Выполнено в срок' }}
             </div>
@@ -59,6 +59,14 @@ Vue.component('kanban-card', {
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
+            });
+        },
+        formatDeadline(deadline) {
+            if (!deadline) return 'Не указан';
+            return new Date(deadline).toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
             });
         },
         submitReturn() {
@@ -138,31 +146,52 @@ Vue.component('card-modal', {
                     v-model="localCard.description" 
                     placeholder="Описание задачи"
                 ></textarea>
-                <input 
-                    v-model="localCard.deadline" 
-                    placeholder="Дедлайн (ГГГГ-ММ-ДД)"
-                    type="text"
-                >
+                
+                <div class="date-input-group">
+                    <label>Дедлайн:</label>
+                    <input 
+                        type="date"
+                        v-model="deadlineDate"
+                        :min="today"
+                    >
+                </div>
+                
                 <div class="modal-actions">
-                    <button class="save" @click="$emit('save', localCard)">Сохранить</button>
+                    <button class="save" @click="saveCard">Сохранить</button>
                     <button class="cancel" @click="$emit('close')">Отмена</button>
                 </div>
             </div>
         </div>
     `,
     data() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+
         return {
             localCard: {
                 title: '',
                 description: '',
                 deadline: ''
-            }
+            },
+            deadlineDate: '',
+            today: `${year}-${month}-${day}`
         };
     },
     watch: {
         card: {
             handler(newCard) {
                 this.localCard = { ...newCard };
+                if (newCard.deadline) {
+                    const date = new Date(newCard.deadline);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    this.deadlineDate = `${year}-${month}-${day}`;
+                } else {
+                    this.deadlineDate = '';
+                }
             },
             deep: true,
             immediate: true
@@ -174,7 +203,19 @@ Vue.component('card-modal', {
                     description: '',
                     deadline: ''
                 };
+                this.deadlineDate = '';
             }
+        }
+    },
+    methods: {
+        saveCard() {
+            if (this.deadlineDate) {
+                const [year, month, day] = this.deadlineDate.split('-');
+                this.localCard.deadline = `${year}-${month}-${day}`;
+            } else {
+                this.localCard.deadline = '';
+            }
+            this.$emit('save', this.localCard);
         }
     }
 });
@@ -303,6 +344,7 @@ Vue.component('kanban-board', {
             this.completedCards = updateInArray([...this.completedCards]);
         },
         checkDeadline(card) {
+            if (!card.deadline) return false;
             const deadline = new Date(card.deadline);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -350,7 +392,6 @@ Vue.component('kanban-board', {
         }
     }
 });
-
 
 let app = new Vue({
     el: '#app'
