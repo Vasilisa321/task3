@@ -15,7 +15,8 @@ Vue.component('kanban-card', {
             <div class="card-description">{{ card.description }}</div>
             <div class="card-deadline">Дедлайн: {{ card.deadline }}</div>
             <div class="card-actions">
-                <button v-if="columnType === 'planned'" class="move-forward" @click="$emit('move-forward')"> В работу</button>
+                <button v-if="columnType === 'planned'" class="move-forward" @click="$emit('move-forward')">→ В работу</button>
+                <button v-if="columnType === 'inProgress'" class="move-forward" @click="$emit('move-forward')">В тестирование</button>
                 <button class="edit-btn" @click="$emit('edit')">Редактировать</button>
                 <button class="delete-btn" @click="$emit('delete')">Удалить</button>
             </div>
@@ -132,7 +133,6 @@ Vue.component('card-modal', {
     }
 });
 
-
 Vue.component('kanban-board', {
     template: `
         <div class="kanban-board">
@@ -152,12 +152,15 @@ Vue.component('kanban-board', {
                 :cards="inProgressCards"
                 @edit-card="openEditModal"
                 @delete-card="deleteCard"
+                @move-forward="moveCardForward"
             ></kanban-column>
             
             <kanban-column 
                 title="Тестирование" 
                 columnType="testing"
                 :cards="testingCards"
+                @edit-card="openEditModal"
+                @delete-card="deleteCard"
             ></kanban-column>
             
             <kanban-column 
@@ -258,6 +261,10 @@ Vue.component('kanban-board', {
             if (this.plannedCards.find(c => c.id === card.id)) {
                 this.plannedCards = this.plannedCards.filter(c => c.id !== card.id);
                 this.inProgressCards.push(updatedCard);
+            }
+            else if (this.inProgressCards.find(c => c.id === card.id)) {
+                this.inProgressCards = this.inProgressCards.filter(c => c.id !== card.id);
+                this.testingCards.push(updatedCard);
             }
         }
     }
