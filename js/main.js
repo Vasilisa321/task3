@@ -182,13 +182,22 @@ Vue.component('card-modal', {
     watch: {
         card: {
             handler(newCard) {
-                this.localCard = { ...newCard };
+                this.localCard = {
+                    title: newCard.title || '',
+                    description: newCard.description || '',
+                    deadline: newCard.deadline || ''
+                };
+
                 if (newCard.deadline) {
                     const date = new Date(newCard.deadline);
-                    const year = date.getFullYear();
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const day = String(date.getDate()).padStart(2, '0');
-                    this.deadlineDate = `${year}-${month}-${day}`;
+                    if (!isNaN(date.getTime())) {
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        this.deadlineDate = `${year}-${month}-${day}`;
+                    } else {
+                        this.deadlineDate = '';
+                    }
                 } else {
                     this.deadlineDate = '';
                 }
@@ -209,13 +218,18 @@ Vue.component('card-modal', {
     },
     methods: {
         saveCard() {
-            if (this.deadlineDate) {
-                const [year, month, day] = this.deadlineDate.split('-');
-                this.localCard.deadline = `${year}-${month}-${day}`;
-            } else {
-                this.localCard.deadline = '';
+            if (!this.localCard.title.trim()) {
+                alert('Введите название задачи');
+                return;
             }
-            this.$emit('save', this.localCard);
+
+            const cardToSave = {
+                title: this.localCard.title,
+                description: this.localCard.description || '',
+                deadline: this.deadlineDate || ''
+            };
+
+            this.$emit('save', cardToSave);
         }
     }
 });
@@ -296,7 +310,12 @@ Vue.component('kanban-board', {
         },
         openEditModal(card) {
             this.modalMode = 'edit';
-            this.currentCard = { ...card };
+            this.currentCard = {
+                id: card.id,
+                title: card.title,
+                description: card.description,
+                deadline: card.deadline
+            };
             this.modalOpen = true;
         },
         closeModal() {
@@ -314,9 +333,10 @@ Vue.component('kanban-board', {
             } else {
                 const editedCard = {
                     ...cardData,
+                    id: this.currentCard.id,
+                    createdAt: this.currentCard.createdAt,
                     lastEdited: new Date().toISOString()
                 };
-
                 this.updateCardInAllColumns(editedCard);
             }
             this.closeModal();
